@@ -80,10 +80,10 @@ app.get("/info", (req, res) => {
 
 app.get("/api/persons/:id", (req, res) => {
   const id = Number(req.params.id);
-  let person = persons[id - 1];
+  let person = persons.filter((obj) => obj.id === id);
 
   // console.log(person);
-  if (!person) {
+  if (!person.length) {
     res.status(404).json({
       error: "Sorry cannot found person. Try another id",
     });
@@ -111,10 +111,6 @@ app.post("/api/persons", (req, res) => {
     res.status(400).json({ error: "Please send all fields" });
     return;
   }
-  // if (typeof number !== "number") {
-  //   res.status(400).json({ error: "Please send a valid number" });
-  //   return;
-  // }
 
   const generateRandomId = (maxNumber) => Math.floor(Math.random() * maxNumber);
   const id = generateRandomId(1000000);
