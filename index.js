@@ -4,6 +4,7 @@ const app = express();
 const cors = require("cors");
 
 app.use(express.json());
+app.use(express.static("dist"));
 app.use(cors());
 // app.use(morgan("tiny"));
 // app.use(
@@ -63,7 +64,8 @@ let persons = [
 ];
 
 app.get("/", (req, res) => {
-  res.send("hello world");
+  // res.send("hello world");
+  res.send();
 });
 
 app.get("/api/persons", (req, res) => {
