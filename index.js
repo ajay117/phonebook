@@ -23,7 +23,7 @@ app.use(
   })
 );
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 const generateRandomId = (maxNumber) => Math.floor(Math.random() * maxNumber);
 
