@@ -11,7 +11,7 @@ logs/
 
 # Build directories
 build/
-dist/
+# dist/
 out/
 
 # IDE-related files
