@@ -6,20 +6,14 @@ const url = process.env.MONGODB_URI;
 
 const mongodbUrl = url;
 
-mongoose.connect(mongodbUrl);
-
-// const userSchema = new Schema({
-//   phone: {
-//     type: String,
-//     validate: {
-//       validator: function (v) {
-//         return /\d{3}-\d{3}-\d{4}/.test(v);
-//       },
-//       message: (props) => `${props.value} is not a valid phone number!`,
-//     },
-//     required: [true, "User phone number required"],
-//   },
-// });
+mongoose
+  .connect(mongodbUrl)
+  .then((result) => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to MongoDB:", error.message);
+  });
 
 const contactSchema = mongoose.Schema({
   name: {
