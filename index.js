@@ -2,16 +2,11 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
+const Contact = require("./models/contact");
 
 app.use(express.json());
 app.use(express.static("dist"));
 app.use(cors());
-// app.use(morgan("tiny"));
-// app.use(
-//   morgan.token("type", (req, res) => {
-//     return JSON.stringify(req.body);
-//   })
-// );
 
 morgan.token("body", function (req, res) {
   return JSON.stringify(req.body);
@@ -41,88 +36,130 @@ const unknownEndPoint = (req, res) => {
 
 // app.use(requestLogger);
 let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
+  // {
+  //   id: 1,
+  //   name: "Arto Hellas",
+  //   number: "040-123456",
+  // },
+  // {
+  //   id: 2,
+  //   name: "Ada Lovelace",
+  //   number: "39-44-5323523",
+  // },
+  // {
+  //   id: 3,
+  //   name: "Dan Abramov",
+  //   number: "12-43-234345",
+  // },
+  // {
+  //   id: 4,
+  //   name: "Mary Poppendieck",
+  //   number: "39-23-6423122",
+  // },
 ];
 
 app.get("/", (req, res) => {
-  // res.send("hello world");
   res.send();
 });
 
-app.get("/api/persons", (req, res) => {
-  res.status(200).json(persons);
+app.get("/api/persons", (req, res, next) => {
+  Contact.find({})
+    .then((allContacts) => {
+      res.status(200).json(allContacts);
+    })
+    .catch((error) => next(error));
 });
 
 app.get("/info", (req, res) => {
-  const totalContacts = persons.length;
-  const date = new Date();
-  res.send(
-    `<p>Phonebook has info for ${totalContacts} people</p><p>${date}</p>`
-  );
+  Contact.find({}).then((allContacts) => {
+    const totalContacts = allContacts.length;
+    const date = new Date();
+    res.send(
+      `<p>Phonebook has info for ${totalContacts} people</p><p>${date}</p>`
+    );
+  });
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  let person = persons.filter((obj) => obj.id === id);
+app.get("/api/persons/:id", (req, res, next) => {
+  const id = req.params.id;
 
-  // console.log(person);
-  if (!person.length) {
-    res.status(404).json({
-      error: "Sorry cannot found person. Try another id",
-    });
-    return;
-  }
+  Contact.findById(id)
+    .then((contact) => {
+      res.status(200).json(contact);
+    })
+    .catch((error) => next(error));
 
-  res.status(200).json(person);
+  // res.status(200).json(person);
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((obj) => obj.id !== id);
+  const id = req.params.id;
+  // persons = persons.filter((obj) => obj.id !== id);
 
-  res.status(204).end();
+  Contact.findByIdAndRemove(id).then((contact) => {
+    res.status(204).end();
+  });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const { name, number } = req.body;
-  console.log(name, number);
-
-  if (persons.some((contact) => contact.name === name)) {
-    res.status(400).json({ error: "name must be unique" });
-  }
   if (!name || !number) {
     res.status(400).json({ error: "Please send all fields" });
     return;
   }
 
-  const generateRandomId = (maxNumber) => Math.floor(Math.random() * maxNumber);
-  const id = generateRandomId(1000000);
-  const newContact = { id, ...req.body };
+  const contact = new Contact({
+    name,
+    number,
+  });
 
-  persons.push(newContact);
-  res.status(201).json(newContact);
+  contact
+    .save()
+    .then((savedContact) => {
+      res.status(200).json(savedContact);
+    })
+    .catch((error) => next(error));
+});
+
+app.put("/api/persons/:id", (req, res, next) => {
+  let { name, number } = req.body;
+  let { id } = req.params;
+  if (!name || !number) {
+    res.status(400).json({ error: "Please send all fields" });
+    return;
+  }
+  let newContact = {
+    name,
+    number,
+  };
+
+  Contact.findByIdAndUpdate({ _id: id }, newContact, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
+    .then((updatedContact) => {
+      res.status(200).json(updatedContact);
+    })
+    .catch((error) => next(error));
 });
 
 app.use(unknownEndPoint);
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+  console.log("Error name :", error.name);
+  if (error.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
+  } else if ((error.name = "ValidationError")) {
+    return res.status(400).json({
+      error: error.message,
+    });
+  }
+  next(error);
+};
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log("Server has started in port " + PORT);
