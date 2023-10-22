@@ -8,55 +8,33 @@ app.use(express.json());
 app.use(express.static("dist"));
 app.use(cors());
 
-morgan.token("body", function (req, res) {
+morgan.token("body", function (req) {
   return JSON.stringify(req.body);
 });
 
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time :body", {
-    skip: (req, res) => req.method !== "POST", // Log only POST requests
+    skip: (req) => req.method !== "POST", // Log only POST requests
   })
 );
 
 const PORT = process.env.PORT || 3001;
 
-const generateRandomId = (maxNumber) => Math.floor(Math.random() * maxNumber);
+// const generateRandomId = (maxNumber) => Math.floor(Math.random() * maxNumber);
 
-const requestLogger = (req, res, next) => {
-  console.log("Method:", req.method);
-  console.log("Path:", req.path);
-  console.log("Body:", req.body);
-  console.log("---");
-  next();
-};
+// const requestLogger = (req, res, next) => {
+//   console.log("Method:", req.method);
+//   console.log("Path:", req.path);
+//   console.log("Body:", req.body);
+//   console.log("---");
+//   next();
+// };
 
 const unknownEndPoint = (req, res) => {
   res.status(404).send({ error: "unknown endpoint" });
 };
 
 // app.use(requestLogger);
-let persons = [
-  // {
-  //   id: 1,
-  //   name: "Arto Hellas",
-  //   number: "040-123456",
-  // },
-  // {
-  //   id: 2,
-  //   name: "Ada Lovelace",
-  //   number: "39-44-5323523",
-  // },
-  // {
-  //   id: 3,
-  //   name: "Dan Abramov",
-  //   number: "12-43-234345",
-  // },
-  // {
-  //   id: 4,
-  //   name: "Mary Poppendieck",
-  //   number: "39-23-6423122",
-  // },
-];
 
 app.get("/", (req, res) => {
   res.send();
@@ -96,7 +74,7 @@ app.delete("/api/persons/:id", (req, res) => {
   const id = req.params.id;
   // persons = persons.filter((obj) => obj.id !== id);
 
-  Contact.findByIdAndRemove(id).then((contact) => {
+  Contact.findByIdAndRemove(id).then(() => {
     res.status(204).end();
   });
 });
@@ -151,7 +129,7 @@ const errorHandler = (error, req, res, next) => {
   console.log("Error name :", error.name);
   if (error.name === "CastError") {
     return res.status(400).send({ error: "malformatted id" });
-  } else if ((error.name = "ValidationError")) {
+  } else if ((error.name === "ValidationError")) {
     return res.status(400).json({
       error: error.message,
     });

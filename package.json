@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:ui": "rm -rf dist && cd ../Full_Stack_Open/part2/phonebook && npm run build && cp -r dist ../../../phonebook/",
-    "deploy:full": "npm run build:ui && git add . && git commit -m 'Commit before deploy' && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m 'Commit before deploy' && git push",
+    "lint": "eslint ."
   },
   "author": "Ajay KC",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "mongoose": "^7.6.2"
   },
   "devDependencies": {
+    "eslint": "^8.52.0",
     "morgan": "^1.10.0",
     "nodemon": "^3.0.1"
   }
